@@ -1,0 +1,46 @@
+service_url:
+https://login.manchester.ac.uk/cas/login?service=https://my.manchester.ac.uk/uPortal/Login%3FrefUrl%3D%2FuPortal%2Ff%2Fhome%2Fnormal%2Frender.uP
+
+
+# def login():
+#     # next = request.args.get('next')
+#     # ticket = request.args.get('ticket')
+#     if not ticket:
+#         # No ticket, the request come from end user, send to CAS login
+#         cas_login_url = cas_client.get_login_url()
+#         app.logger.debug('CAS login URL: %s', cas_login_url)
+#         return redirect(cas_login_url)
+
+#     # There is a ticket, the request come from CAS as callback.
+#     # need call `verify_ticket()` to validate ticket and get user profile.
+#     app.logger.debug('ticket: %s', ticket)
+#     app.logger.debug('next: %s', next)
+
+#     user, attributes, pgtiou = cas_client.verify_ticket(ticket)
+
+#     app.logger.debug(
+#         'CAS verify ticket response: user: %s, attributes: %s, pgtiou: %s', user, attributes, pgtiou)
+
+#     if not user:
+#         return 'Failed to verify ticket. <a href="/login">Login</a>'
+#     else:  # Login successfully, redirect according `next` query parameter.
+#         session['username'] = user
+#         return redirect(next)
+
+
+# def logout():
+#     redirect_url = url_for('logout_callback', _external=True)
+#     cas_logout_url = cas_client.get_logout_url(redirect_url)
+#     app.logger.debug('CAS logout URL: %s', cas_logout_url)
+
+#     return redirect(cas_logout_url)
+
+
+# def logout_callback():
+#     # redirect from CAS logout request after CAS logout successfully
+#     session.pop('username', None)
+#     return 'Logged out from CAS. <a href="/login">Login</a>'
+
+ApplicationGatewayAffinity=2bae01b14407f077709f09054153c11a40809dcea09cb6229ab0bcc8417c62b4; ApplicationGatewayAffinityCORS=2bae01b14407f077709f09054153c11a40809dcea09cb6229ab0bcc8417c62b4;
+
+JSESSIONID=ADDA581BA303944B29B33032E85467B0
