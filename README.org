@@ -19,10 +19,14 @@ Scrapes details of the course units for the UoM BSc in Computer Science.
   + Materials page
 - Assessment methods
 - Pre/Co-requisites
-** Useage
+** Usage
 To allow the program to scrape the My Manchester website, you will have to
 create the file 'auth' in the top level directory. Contents are as follows:
 
 #+BEGIN_EXAMPLE
 username,password
 #+END_EXAMPLE
+
+Install dependencies with =pip install -r requirements.txt=.
+
+Then run =python course_scraper.py=.

@@ -5,7 +5,6 @@ from lxml import html, etree
 
 from course import Course
 from cas_auth import manc_session
-import lxml
 
 
 class Course:
@@ -129,7 +128,7 @@ class CourseDownloader:
         self.courses = CourseDir()
 
     def get_uportal_tree(self):
-        return lxml.html.fromstring(
+        return html.fromstring(
             self.session.get(
                 "https://my.manchester.ac.uk/uPortal/f/mylearning/normal/render.uP"
             ).text
