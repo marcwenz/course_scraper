@@ -4,11 +4,14 @@ import requests
 import re
 
 form_data = {
-    "username": "r83727mw",
-    "password": "Hi1wTU$MWenz23",
     "_eventId": "submit",
     "submit": "Login",
 }
+
+
+def load_credentials():
+    with open("auth", mode="r") as f:
+        return f.readline().strip().split(",")
 
 
 def manc_session():
@@ -29,4 +32,4 @@ def manc_session():
 
 
 if __name__ == "__main__":
-    manc_session()
+    print(load_credentials())
