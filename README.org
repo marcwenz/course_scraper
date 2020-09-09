@@ -1,8 +1,8 @@
-#+TITLE: Course Scraper
+* Course Scraper
 
 Scrapes details of the course units for the UoM BSc in Computer Science.
 
-* Course Parameters
+** Course Parameters
 - Course ID
 - Course Name
 - Credits
@@ -19,3 +19,10 @@ Scrapes details of the course units for the UoM BSc in Computer Science.
   + Materials page
 - Assessment methods
 - Pre/Co-requisites
+** Useage
+To allow the program to scrape the My Manchester website, you will have to
+create the file 'auth' in the top level directory. Contents are as follows:
+
+#+BEGIN_EXAMPLE
+username,password
+#+END_EXAMPLE
