@@ -3,15 +3,20 @@
 import requests
 import re
 
-form_data = {
-    "_eventId": "submit",
-    "submit": "Login",
-}
-
 
 def load_credentials():
+    creds = []
     with open("auth", mode="r") as f:
-        return f.readline().strip().split(",")
+        creds = f.readline().strip().split(",")
+
+    form_data = {
+        "username": creds[0],
+        "password": creds[1],
+        "_eventId": "submit",
+        "submit": "Login",
+    }
+
+    return form_data
 
 
 def manc_session():
@@ -23,6 +28,8 @@ def manc_session():
 
     r = s.get(login_url)
 
+    form_data = load_credentials()
+
     form_data["lt"] = re.search('name="lt" value="(.+)"', r.text).group(1)
     form_data["execution"] = re.search('name="execution" value="(.+)"', r.text).group(1)
 
@@ -32,4 +39,4 @@ def manc_session():
 
 
 if __name__ == "__main__":
-    print(load_credentials())
+    manc_session()
