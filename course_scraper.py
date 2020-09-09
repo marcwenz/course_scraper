@@ -3,7 +3,6 @@
 import requests
 from lxml import html, etree
 
-from course import Course
 from cas_auth import manc_session
 
 
@@ -95,6 +94,10 @@ class Course:
             )
         )
 
+    def extend_attrs(self, attrs):
+        for attr, val in attrs.items():
+            setattr(self, attr, val)
+
 
 class CourseDir:
     def __init__(self):
@@ -105,6 +108,12 @@ class CourseDir:
         return "\n\n---------------------------------------\n\n".join(
             [":\n".join((i, str(c))) for i, c in self.courses.items()]
         )
+
+    def __getitem__(self, x):
+        return self.courses[x]
+
+    def all(self):
+        return self.courses
 
     def get_course(self, n):
         if isinstance(n, int):
@@ -126,34 +135,29 @@ class CourseDownloader:
         self.course_dir_url = "http://studentnet.cs.manchester.ac.uk/ugt/syllabus.php"
         self.session = manc_session()
         self.courses = CourseDir()
+        self.url_ext = "https://my.manchester.ac.uk"
 
-    def get_uportal_tree(self):
-        return html.fromstring(
-            self.session.get(
-                "https://my.manchester.ac.uk/uPortal/f/mylearning/normal/render.uP"
-            ).text
+    def session_get_tree(self, url):
+        return html.fromstring(self.session.get(url).text)
+
+    def run(self):
+        self.uportal_stage()
+        self.course_page_stage()
+
+    def uportal_stage(self):
+        cp = self.session_get_tree(
+            "https://my.manchester.ac.uk/uPortal/f/mylearning/normal/render.uP"
         )
-
-    def dl_url(self, url):
-        return (url, str(requests.get(url).text))
-
-    def parse_tree(self, page):
-        return html.fromstring(page)
-
-    def get_dir_tree(self):
-        return self.parse_tree(self.dl_url(self.course_dir_url)[-1])
-
-    def ex_courses_links(self):
-        cp = self.get_uportal_tree()
         c = cp.xpath('//*[@id="Pluto_179_u29l1n5206_238410_programPlan"]')[0]
         for y in c.findall(".//tbody"):
             for r in y.findall(".//tr"):
                 cols = r.findall(".//td")[:6]
                 t = cols[0].find("a")
+                print("Extracting stage 1 for", t.text)
                 att = {
                     "id": t.text,
                     "name": cols[1].find("a").text,
-                    "uportal_link": t.get("href"),
+                    "uportal_link": self.url_ext + t.get("href"),
                 }
                 for aa, cc in zip(("level", "semester", "credits", "req"), cols[2:]):
                     att[aa] = cc.text
@@ -161,66 +165,71 @@ class CourseDownloader:
                 course = Course(**att)
                 self.courses.add_course(course)
 
-    def dl_course(self, url):
-        pass
+    def course_page_stage(self):
+        for id in self.courses.all():
+            c = self.courses[id]
+            p = self.session_get_tree(c.uportal_link)
+            print("Extracting stage 2 for", str(id))
+            attrs = {
+                "department": self.ex_department(p),
+                "assessment": self.ex_assess_methods(p),
+            }
+            c.extend_attrs(attrs)
+            self.courses.courses[id] = c
 
     def gen_course_obj(self, **kw):
         return Course(**kw)
 
-    def ex_id(self):
+    def ex_materials(self, p):
         pass
 
-    def ex_name(self):
+    def ex_syllabus(self, p):
         pass
 
-    def ex_syllabus(self):
+    def ex_course_times(self, p):
         pass
 
-    def ex_sem(self):
+    def ex_reading_list(self, p):
         pass
 
-    def ex_level(self):
+    def ex_professor(self, p):
         pass
 
-    def ex_course_times(self):
+    def ex_professor_email(self, p):
         pass
 
-    def ex_yr(self):
-        pass
+    def ex_assess_methods(self, p):
+        m = []
+        t = p.xpath('//*[@id="Pluto_179_u29l1n5206_238410_cuAdditionalDetails"]')[0]
+        for r in t.findall(".//h4"):
+            if r.text == "Assessment methods":
+                t = r.getnext()
+                break
+        for r in t.findall(".//tr"):
+            for e in r.xpath(".//th | .//td | .//p"):
+                if j := e.text:
+                    if i := j.strip():
+                        m.append(i)
+        if len(m) == 0:
+            for r in t.findall(".//p"):
+                if j := r.text:
+                    if i := j.strip():
+                        m.append(i.strip())
+        return m
 
-    def ex_credits(self):
-        pass
-
-    def ex_reading_list(self):
-        pass
-
-    def ex_professor(self):
-        pass
-
-    def ex_professor_email(self):
-        pass
-
-    def ex_course_links(self):
-        pass
-
-    def ex_assess_methods(self):
-        pass
-
-    def ex_department(self):
-        pass
-
-    def ex_requirement(self):
-        pass
+    def ex_department(self, p):
+        d = p.xpath('//*[@id="$(n)cui-container"]/div[2]/div/dl/dd[5]')[0].text.strip()
+        return d
 
 
 def gen_files_for_all_courses():
     cd = CourseDownloader()
-    links = cd.ex_courses_links(cd.get_dir_tree())
+    links = cd.run(cd.get_dir_tree())
 
 
 def main():
     cd = CourseDownloader()
-    cd.ex_courses_links()
+    cd.run()
     print(cd.courses)
 
 
