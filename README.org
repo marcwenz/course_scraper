@@ -1,0 +1,21 @@
+#+TITLE: Course Scraper
+
+Scrapes details of the course units for the UoM BSc in Computer Science.
+
+* Course Parameters
+- Course ID
+- Course Name
+- Credits
+- Semester (either 1, 2 or F)
+- Requirement (Compulsory or Optional)
+- Level (Synonymous to year)
+- Department
+- Professor's name
+- Professor's email
+- Reading list
+- Course time table
+- Course Links
+  + Syllabus page
+  + Materials page
+- Assessment methods
+- Pre/Co-requisites
