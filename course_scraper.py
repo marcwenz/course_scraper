@@ -142,7 +142,6 @@ class CourseDownloader:
 
     def run(self):
         self.uportal_stage()
-        self.course_page_stage()
 
     def uportal_stage(self):
         cp = self.session_get_tree(
@@ -164,18 +163,6 @@ class CourseDownloader:
 
                 course = Course(**att)
                 self.courses.add_course(course)
-
-    def course_page_stage(self):
-        for id in self.courses.all():
-            c = self.courses[id]
-            p = self.session_get_tree(c.uportal_link)
-            print("Extracting stage 2 for", str(id))
-            attrs = {
-                "department": self.ex_department(p),
-                "assessment": self.ex_assess_methods(p),
-            }
-            c.extend_attrs(attrs)
-            self.courses.courses[id] = c
 
     def gen_course_obj(self, **kw):
         return Course(**kw)

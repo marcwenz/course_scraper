@@ -8,7 +8,6 @@
 - Semester
 - Requirement
 - Level
-- Department
 - Professor
 - Professor email
 - Reading list
@@ -33,7 +32,6 @@ https://my.manchester.ac.uk/uPortal/f/mylearning/normal/render.uP
 - uPortal course page link
 ** uPortal course page
 [[https://my.manchester.ac.uk/uPortal/f/mylearning/normal/render.uP?pCt=course-unit-info.u29l1n5206&pP_location=%2FCourseUnitPublishing%2FCourseUnitDataFiles%2FCOMP%2F001865COMP151112020-08-261V13.xml&pP_action=viewCUDetails][Course Page]]
-- Department
 - Assessment methods
 ** Open Course syllabus page
 [[http://studentnet.cs.manchester.ac.uk/ugt/COMP10120/syllabus/][syllabus]]
