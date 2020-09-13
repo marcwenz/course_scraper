@@ -59,7 +59,6 @@ def scheduled():
 
 def timetable(t):
     t[0].insert(1, "Week")
-    print(t)
     e = ["| " + " | ".join([e if e else "-" for e in row]) + " |" for row in t]
 
     e.insert(

@@ -25,7 +25,7 @@ of Computer Science. I'll maybe expand it to all available courses in the future
 ** Format
 The programm will create a folder =./courses= with this structure:
 #+BEGIN_EXAMPLE
-courses -
+courses
  ├─comp11111
  │  └─comp11111.org
  └─comp11021
