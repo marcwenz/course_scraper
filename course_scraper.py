@@ -2,6 +2,7 @@
 
 import requests
 from lxml import html, etree
+import re
 
 from cas_auth import manc_session
 
@@ -21,11 +22,10 @@ class Course:
         reading_list=None,
         time_table=None,
         syllabus_link=None,
-        materials_link=None,
         uportal_link=None,
         assessment=None,
         prerequisites=None,
-        corequisites=None,
+        # corequisites=None,
     ):
         self.id = id
         self.name = name
@@ -39,11 +39,10 @@ class Course:
         self.reading_list = reading_list
         self.time_table = time_table
         self.syllabus_link = syllabus_link
-        self.materials_link = materials_link
         self.uportal_link = uportal_link
         self.assessment = assessment
         self.prerequisites = prerequisites
-        self.corequisites = corequisites
+        # self.corequisites = corequisites
 
     def all_values(self):
         return [
@@ -59,11 +58,10 @@ class Course:
             self.reading_list,
             self.time_table,
             self.syllabus_link,
-            self.materials_link,
             self.uportal_link,
             self.assessment,
             self.prerequisites,
-            self.corequisites,
+            # self.corequisites,
         ]
 
     def __str__(self):
@@ -72,7 +70,7 @@ class Course:
             "Name",
             "Credits",
             "Semester",
-            "Requirements",
+            "Requirement",
             "Level",
             "Department",
             "Professor",
@@ -80,11 +78,10 @@ class Course:
             "Reading List",
             "Time table",
             "Syllabus link",
-            "Materials link",
             "uPortal link",
             "Assessment menthods",
             "Prerequisites",
-            "Corequisites",
+            # "Corequisites",
         ]
 
         return str(
@@ -115,15 +112,15 @@ class CourseDir:
     def all(self):
         return self.courses
 
-    def get_course(self, n):
+    def get(self, n):
         if isinstance(n, int):
-            return self.courses.values()[n]
+            return list(self.courses.values())[n]
         elif isinstance(n, str):
             return self.courses[n]
         else:
             raise ValueError("arg n must either be int or str")
 
-    def add_course(self, c, replace=False):
+    def add(self, c, replace=True):
         if not replace and c.id in self.courses.keys():
             return 0
         self.courses[c.id] = c
@@ -136,12 +133,17 @@ class CourseDownloader:
         self.session = manc_session()
         self.courses = CourseDir()
         self.url_ext = "https://my.manchester.ac.uk"
+        self.open_ext = "http://studentnet.cs.manchester.ac.uk/ugt/"
 
     def session_get_tree(self, url):
-        return html.fromstring(self.session.get(url).text)
+        return html.fromstring(self.session_get_html(url))
+
+    def session_get_html(self, url):
+        return self.session.get(url).text
 
     def run(self):
         self.uportal_stage()
+        self.syllabus_page_stage()
 
     def uportal_stage(self):
         cp = self.session_get_tree(
@@ -152,7 +154,7 @@ class CourseDownloader:
             for r in y.findall(".//tr"):
                 cols = r.findall(".//td")[:6]
                 t = cols[0].find("a")
-                print("Extracting stage 1 for", t.text)
+                # print("Extracting stage 1 for", t.text)
                 att = {
                     "id": t.text,
                     "name": cols[1].find("a").text,
@@ -162,62 +164,96 @@ class CourseDownloader:
                     att[aa] = cc.text
 
                 course = Course(**att)
-                self.courses.add_course(course)
+                self.courses.add(course)
 
-    def gen_course_obj(self, **kw):
-        return Course(**kw)
+    def syllabus_page_stage(self):
+        for id in list(self.courses.courses.keys()):
+            c = self.courses.get(id)
+            c.department = self.ex_department(id)
+            if not id[:4] == "COMP":
+                continue
+            url = self.gen_course_syllabus_link(id)
+            # print(url)
+            c.syllabus_link = url
+            tree = html.fromstring(requests.get(url).text)
+            c.prof, c.prof_email = self.ex_professor_and_email(tree)
+            c.time_table = self.ex_course_times(tree)
+            c.assessment = self.ex_assess_methods(tree)
+            c.prerequisites = self.ex_requisites(tree)
+            # print(c)
 
-    def ex_materials(self, p):
-        pass
-
-    def ex_syllabus(self, p):
-        pass
+    def gen_course_syllabus_link(self, id):
+        return self.open_ext + id + "/syllabus/"
 
     def ex_course_times(self, p):
-        pass
+        div = p.xpath(
+            "/html/body/div[3]/article/div[1]/section/article/div[1]/div/div"
+        )[0]
+        for d in div.findall(".//div"):
+            if d.text is not None and d.text == "Timetable":
+                table = d.getnext()
+
+        times = []
+        for row in table.findall(".//tr"):
+            r = []
+            for cell in row.xpath(".//th | .//td"):
+                r.append(cell.text)
+            times.append(r)
+
+        return times
 
     def ex_reading_list(self, p):
-        pass
+        raise NotImplementedError
 
-    def ex_professor(self, p):
-        pass
+    def ex_professor_and_email(self, tree):
+        elem = tree.xpath(
+            "/html/body/div[3]/article/div[1]/section/article/div[1]/div/div/p[3]/a"
+        )[0]
+        return (elem.text, elem.get("href").replace("mailto:", ""))
 
-    def ex_professor_email(self, p):
-        pass
+    def ex_requisites(self, p):
+        div = p.xpath(
+            "/html/body/div[3]/article/div[1]/section/article/div[1]/div/div"
+        )[0]
+        ul = None
+        for d in div.findall(".//strong"):
+            if d.text is not None and d.text == "Requisites":
+                ul = d.getparent().getnext()
+        if not ul:
+            return ["No requisites"]
+        req = []
+        for l in ul.findall(".//li"):
+            req.append(re.sub("\s+", " ", l.text))
+        return req
 
     def ex_assess_methods(self, p):
-        m = []
-        t = p.xpath('//*[@id="Pluto_179_u29l1n5206_238410_cuAdditionalDetails"]')[0]
-        for r in t.findall(".//h4"):
-            if r.text == "Assessment methods":
-                t = r.getnext()
-                break
-        for r in t.findall(".//tr"):
-            for e in r.xpath(".//th | .//td | .//p"):
-                if j := e.text:
-                    if i := j.strip():
-                        m.append(i)
-        if len(m) == 0:
-            for r in t.findall(".//p"):
-                if j := r.text:
-                    if i := j.strip():
-                        m.append(i.strip())
-        return m
+        div = p.xpath(
+            "/html/body/div[3]/article/div[1]/section/article/div[1]/div/div"
+        )[0]
+        for d in div.findall(".//strong"):
+            if d.text is not None and d.text == "Assessment methods":
+                ul = d.getparent().getnext()
+        assess = []
+        for l in ul.findall(".//li"):
+            assess.append(l.text)
+        return assess
 
-    def ex_department(self, p):
-        d = p.xpath('//*[@id="$(n)cui-container"]/div[2]/div/dl/dd[5]')[0].text.strip()
-        return d
-
-
-def gen_files_for_all_courses():
-    cd = CourseDownloader()
-    links = cd.run(cd.get_dir_tree())
+    def ex_department(self, id):
+        id = id[:4]
+        if id == "COMP":
+            return "Department of Computer Science"
+        elif id in ["MCEL", "BMAN"]:
+            return "Alliance Manchester Business School"
+        elif id[:2] == "UL":
+            return "University Language Centre"
+        else:
+            return "Not found"
 
 
 def main():
     cd = CourseDownloader()
     cd.run()
-    print(cd.courses)
+    # print(cd.ex_courses_syllabus_links())
 
 
 if __name__ == "__main__":
