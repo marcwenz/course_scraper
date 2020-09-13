@@ -71,12 +71,14 @@ def timetable(t):
     return e
 
 
-def infoblock(id, name, credits, req, level, prof, email):
+def infoblock(id, name, credits, department, semester, req, level, prof, email):
     return (
         ""
         + ("- ID           | " + id + NL)
         + ("- Name         | " + name + NL)
         + ("- Credits      | " + credits + NL)
+        + ("- Department   | " + department + NL)
+        + ("- Semester     | " + semester + NL)
         + ("- Requirement  | " + req + NL)
         + ("- Level        | " + level + NL)
         + ("- Professor    | " + prof + NL)
@@ -137,6 +139,8 @@ def gen_file_text(course):
             course.id,
             course.name,
             course.credits,
+            course.department,
+            course.semester,
             course.req,
             course.level,
             course.prof,
