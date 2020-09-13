@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from course_scraper import CourseDownloader, Course
+from scraper import CourseDownloader, Course
 import re
 import os
 
@@ -31,8 +31,6 @@ import os
 
 DIR = "./courses/"
 TAB = "  "
-DTAB = 2 * TAB
-TTAB = 3 * TAB
 NL = "\n"
 SCHEDULE_SH = "** Schedule"
 INFO_SH = "** Course Information"
@@ -174,13 +172,13 @@ def write_file(path, text):
 def main():
     cd = CourseDownloader()
     cd.run()
+    make_course_dir("")
     for course in cd.courses.courses.values():
 
         if course.id[:4] == "COMP":
             print("Generating file for", course.id)
             path = make_course_dir(course.id.lower())
             o = gen_file_text(course)
-            print(o)
             write_file(path + "/" + course.id.lower() + ".org", o)
 
 

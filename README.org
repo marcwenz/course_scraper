@@ -2,6 +2,9 @@
 
 Scrapes details of the course units for the UoM BSc in Computer Science.
 
+In its current form, it only creates files for courses offered by the Department
+of Computer Science. I'll maybe expand it to all available courses in the future.
+
 ** Course Parameters
 - Course ID
 - Course Name
@@ -19,7 +22,19 @@ Scrapes details of the course units for the UoM BSc in Computer Science.
   + Materials page
 - Assessment methods
 - Pre/Co-requisites
+** Format
+The programm will create a folder =./courses= with this structure:
+#+BEGIN_EXAMPLE
+courses -
+ ├─comp11111
+ │  └─comp11111.org
+ └─comp11021
+    └─comp11021.org
+#+END_EXAMPLE
+
 ** Usage
+First, install dependencies with =pip install -r requirements.txt=.
+
 To allow the program to scrape the My Manchester website, you will have to
 create the file 'auth' in top level directory with the following content:
 
@@ -27,8 +42,6 @@ create the file 'auth' in top level directory with the following content:
 username,password
 #+END_EXAMPLE
 
-First, install dependencies with =pip install -r requirements.txt=.
-
-Then run =python main.py= to scrape the courses.
+Then run =python file_generator.py= to scrape the courses.
 
 The output format will be .org, but you can adjust this by editing =file_generator.py=.
